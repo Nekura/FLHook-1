@@ -759,7 +759,8 @@ void __stdcall DisConnect(unsigned int iClientID, enum EFLConnection p2) {
     TRY_HOOK {
         if (!ClientInfo[iClientID].bDisconnected) {
             ClientInfo[iClientID].bDisconnected = true;
-            ClientInfo[iClientID].lstMoneyFix.clear();
+            if (ClientInfo[iClientID].lstMoneyFix.size()) 
+                ClientInfo[iClientID].lstMoneyFix.clear();
             ClientInfo[iClientID].iTradePartner = 0;
 
             // event
