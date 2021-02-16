@@ -163,7 +163,10 @@ void ClearClientInfo(uint iClientID) {
     ClientInfo[iClientID].iShip = 0;
     ClientInfo[iClientID].iShipOld = 0;
     ClientInfo[iClientID].tmSpawnTime = 0;
-    ClientInfo[iClientID].lstMoneyFix.clear();
+    try {
+        ClientInfo[iClientID].lstMoneyFix.clear();
+    } catch(...) {
+    }
     ClientInfo[iClientID].iTradePartner = 0;
     ClientInfo[iClientID].iBaseEnterTime = 0;
     ClientInfo[iClientID].iCharMenuEnterTime = 0;
@@ -188,7 +191,11 @@ void ClearClientInfo(uint iClientID) {
     ClientInfo[iClientID].bAutoBuyCM = false;
     ClientInfo[iClientID].bAutoBuyReload = false;
 
-    ClientInfo[iClientID].lstIgnore.clear();
+    try {
+        ClientInfo[iClientID].lstIgnore.clear();
+    } catch (...) {
+    }
+    
     ClientInfo[iClientID].iKillsInARow = 0;
     ClientInfo[iClientID].wscHostname = L"";
     ClientInfo[iClientID].bEngineKilled = false;
