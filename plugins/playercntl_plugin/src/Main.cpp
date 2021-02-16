@@ -133,6 +133,7 @@ void LoadSettings() {
     RepFixer::LoadSettings(scPluginCfgFile);
     Message::LoadSettings(scPluginCfgFile);
     SystemSensor::LoadSettings(scPluginCfgFile);
+    Wardrobe::LoadSettings(scPluginCfgFile);
     CrashCatcher::Init();
 
       if (set_bEnableCargoDrop)
@@ -179,6 +180,7 @@ void HkTimer() {
     Message::Timer();
     Restart::Timer();
     Rename::Timer();
+    Wardrobe::Timer();
 
     if (set_bEnableCargoDrop)
         CargoDrop::Timer();
@@ -803,7 +805,9 @@ USERCMD UserCmds[] = {
     {L"/settagpass", Rename::UserCmd_SetTagPass,
      L"Usage: /settagpass <tag> <master password> <rename password>"},
     {L"/me", Message::UserCmd_Me, L"Usage: /me <message>"},
-    {L"/do", Message::UserCmd_Do, L"Usage: /do <message>"}};
+    {L"/do", Message::UserCmd_Do, L"Usage: /do <message>"},
+    {L"/show", Wardrobe::UserCmd_ShowWardrobe, L"Usage: /show <heads/bodies> - This shows the available heads and bodies for the /change command."},
+    {L"/change", Wardrobe::UserCmd_ChangeCostume, L"Usage: /change <head/body> <name> - This changes Trent's head or body to one specified in the /show command."}};
 
 /**
 This function is called by FLHook when a user types a chat std::string. We look

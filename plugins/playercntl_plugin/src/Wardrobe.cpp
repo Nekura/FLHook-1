@@ -22,18 +22,24 @@ namespace Wardrobe
 
 	bool Wardrobe::UserCmd_ShowWardrobe(uint iClientID, const std::wstring& wscCmd, const std::wstring& wscParam, const wchar_t* usage)
 	{
-		PrintUserCmdText(iClientID, L"Heads:");
-		std::wstring wscHeads;
-		for (auto& [name, id] : heads)
-			wscHeads += (stows(name) + L" | ");
-		PrintUserCmdText(iClientID, wscHeads);
+        std::wstring wscType = GetParam(wscParam, ' ', 0);
 
-		PrintUserCmdText(iClientID, L"Bodies:");
-		std::wstring wscBodies;
-		for (auto& [name, id] : bodies)
-			wscBodies += (stows(name) + L" | ");
-		PrintUserCmdText(iClientID, wscBodies);
-
+		if (ToLower(wscType) == L"heads") {
+            PrintUserCmdText(iClientID, L"Heads:");
+            std::wstring wscHeads;
+            for (auto &[name, id] : heads)
+                wscHeads += (stows(name) + L" | ");
+            PrintUserCmdText(iClientID, wscHeads);
+        } 
+		else if (ToLower(wscType) == L"bodies") {
+            PrintUserCmdText(iClientID, L"Bodies:");
+            std::wstring wscBodies;
+            for (auto &[name, id] : bodies)
+                wscBodies += (stows(name) + L" | ");
+            PrintUserCmdText(iClientID, wscBodies);
+        } else {
+            PrintUserCmdText(iClientID, usage);
+        }
 		return true;
 	}
 
@@ -55,7 +61,7 @@ namespace Wardrobe
 		{
 			if (heads.find(wstos(wscCostume)) == heads.end())
 			{
-				PrintUserCmdText(iClientID, L"ERR Head not found. Use /wardrobe to get heads.");
+				PrintUserCmdText(iClientID, L"ERR Head not found. Use \"/show heads\" to get heads.");
 				return true;
 			}
 			restart.head = 1;
@@ -65,7 +71,7 @@ namespace Wardrobe
 		{
 			if (bodies.find(wstos(wscCostume)) == bodies.end())
 			{
-				PrintUserCmdText(iClientID, L"ERR Body not found. Use /wardrobe to get bodies.");
+				PrintUserCmdText(iClientID, L"ERR Body not found. Use \"/show bodies\" to get bodies.");
 				return true;
 			}
 			restart.head = 0;
