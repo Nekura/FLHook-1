@@ -1,4 +1,8 @@
 // Survival by Raikkonen
+// TODO Fix logging so its doesnt open and close each write
+// Read in personalities from the game itself rather than a shitty hardcoded one
+// Why isn't the audio working? Try replacing with one we know works
+// Export each game to a JSON file for the website
 
 #include "Main.h"
 
@@ -163,7 +167,7 @@ bool NewGame(uint iClientID, const std::wstring &wscCmd,
         HkRelocateClient(player, game.Survival.pos, rot);
 
         // Play start sound
-        pub::Audio::PlaySoundEffect(player,CreateID("rmb_inrangeships_01"));
+        pub::Audio::PlaySoundEffect(player,CreateID("rmb_inrangeships_01-"));
     }
 
     NewWave(game);
@@ -207,18 +211,23 @@ void NPCDestroyed(CShip *ship) {
 
 void EndWave(GAME & game) {
     // Payout reward
+    uint iReward = game.Survival.Waves.at(game.iWaveNumber).iReward;
     if (game.iGroupID != 0) {
         CPlayerGroup *group = CPlayerGroup::FromGroupID(game.iGroupID);
-        group->RewardMembers(game.Survival.Waves.at(game.iWaveNumber).iReward);
+        group->RewardMembers(iReward);
     } else {
         wchar_t *wszActiveCharname = (wchar_t *)Players.GetActiveCharacterName(
             game.StoreMemberList.front());
-        HkAddCash(wszActiveCharname,
-                  game.Survival.Waves.at(game.iWaveNumber).iReward);
+        HkAddCash(wszActiveCharname, iReward);
     }
-    
+  
     // Increment Wave
     game.iWaveNumber++;
+
+    // Message each player telling them the wave is over. Do after iWaveNumber increment because we want wave 1 not 0.
+    for (auto &player : game.StoreMemberList)
+        PrintUserCmdText(player, L"Wave %u complete. Reward: %u credits.",
+                         game.iWaveNumber, iReward);
 
 	// Is there a next wave? If so start it on a timer. If not, EndSurvival()
     if (game.iWaveNumber >= game.Survival.Waves.size())
@@ -227,45 +236,53 @@ void EndWave(GAME & game) {
         NewWave(game);
 }
 
-void EndSurvival(GAME & game) {
+void EndSurvival(GAME &game) {
     for (auto const &player : game.StoreMemberList) {
         // Mission Result: Success
         ShowPlayerMissionText(player, 1231, MissionMessageType_Type3);
         
         // You did it, area is clear. Good job.
-        pub::Audio::PlaySoundEffect(player, CreateID("rmb_success_ships_01"));
+        pub::Audio::PlaySoundEffect(player, CreateID("rmb_success_ships_01-"));
     }
 
-	// Red Text Universe 
+    // Remove game from list
+    Games.remove(game);
+
+	// Red Text Universe
+    wchar_t *wszActiveCharname =
+        (wchar_t *)Players.GetActiveCharacterName(game.StoreMemberList.front());
+    std::wstring msg = std::wstring(wszActiveCharname) +
+                       L" and their team have completed a Survival.";
+    Utilities::SendUniverseChatRedText(msg);
 }
 
 void Disqualify(uint iClientID) {
     // Are they even in a game?
-    for (std::list<GAME>::iterator git = Games.begin(); git != Games.end(); git++) {
+    for (auto &game : Games) {
         std::vector<uint>::iterator it =
-            std::find(git->StoreMemberList.begin(), git->StoreMemberList.end(),
+            std::find(game.StoreMemberList.begin(), game.StoreMemberList.end(),
                       iClientID);
-        if (it != git->StoreMemberList.end()) {
+        if (it != game.StoreMemberList.end()) {
 
             // Remove from group
-            if (git->iGroupID != 0) {
-                CPlayerGroup *group = CPlayerGroup::FromGroupID(git->iGroupID);
+            if (game.iGroupID != 0) {
+                CPlayerGroup *group = CPlayerGroup::FromGroupID(game.iGroupID);
                 group->DelMember(iClientID); // Remove from group
             }
 
             // Remove from member list
-            git->StoreMemberList.erase(it);
+            game.StoreMemberList.erase(it);
 
             // Mission Failed.
-            ShowPlayerMissionText(iClientID, 13085, MissionMessageType_Type3); 
+            ShowPlayerMissionText(iClientID, 13085, MissionMessageType_Failure); 
 
              // Any members left?
-            if (git->StoreMemberList.empty())
-                Games.erase(git);
+            if (game.StoreMemberList.empty())
+                Games.remove(game);
             else {
                 wchar_t *wszActiveCharname =
                     (wchar_t *)Players.GetActiveCharacterName(iClientID);
-                for (auto &player : git->StoreMemberList)
+                for (auto &player : game.StoreMemberList)
                     PrintUserCmdText(player, L"%s has fled the battle.",
                                      wszActiveCharname);
             }

@@ -67,7 +67,8 @@ namespace Utilities {
     void Logging(const char *szString, ...);
     uint rand_name();
     float rand_FloatRange(float a, float b);
-}
+    void SendUniverseChatRedText(std::wstring wscXMLText);
+    }
 
 namespace Survival {
 
@@ -89,6 +90,12 @@ namespace Survival {
         uint iSystemID;
         SURVIVAL Survival;
         std::list<uint> iSpawnedNPCs;
+
+        bool operator==(GAME g) const {
+            if (iSystemID == g.iSystemID)
+                return true;
+            return false;
+        };
     };
 
     void LoadSurvivalSettings(const std::string &scPluginCfgFile);

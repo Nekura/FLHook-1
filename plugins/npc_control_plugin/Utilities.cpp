@@ -328,4 +328,24 @@ uint CreateNPC(std::wstring name, Vector pos, Matrix rot, uint iSystem,
 
     return iSpaceObj;
 }
+
+void SendUniverseChatRedText(std::wstring wscXMLText) {
+    // Encode message using the death message style (red text).
+    std::wstring wscXMLMsg =
+        L"<TRA data=\"" + set_wscDeathMsgStyleSys + L"\" mask=\"-1\"/> <TEXT>";
+    wscXMLMsg += wscXMLText;
+    wscXMLMsg += L"</TEXT>";
+
+    char szBuf[0x1000];
+    uint iRet;
+    if (!HKHKSUCCESS(HkFMsgEncodeXML(wscXMLMsg, szBuf, sizeof(szBuf), iRet)))
+        return;
+
+    // Send to all players in system
+    struct PlayerData *pPD = 0;
+    while (pPD = Players.traverse_active(pPD)) {
+        uint iClientID = HkGetClientIdFromPD(pPD);
+        HkFMsgSendChat(iClientID, szBuf, iRet);
+    }
+}
 } // namespace Utilities
